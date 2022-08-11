@@ -114,17 +114,18 @@
   </div>
 </template>
 <script setup>
-import { reactive, ref, toRaw } from "vue";
-import { useStore } from "vuex";
-import { useRouter } from "vue-router";
-// import { useI18n } from "vue-i18n";
+import { reactive, ref } from "vue";
 import useMessage from "@/hooks/useMessage";
-import { login } from "@/api/user.js";
-const router = useRouter();
-const store = useStore();
-const { ElMessage } = useMessage();
-// const { t } = useI18n();
+import { useRouter } from "vue-router";
 
+// import { useI18n } from "vue-i18n";
+
+// const { t } = useI18n();
+import { useStore } from "vuex";
+
+const store = useStore();
+const router = useRouter();
+const { ElMessage } = useMessage();
 // 导入图片
 const logoImg = require("@/assets/imgs/logo.png");
 
@@ -154,47 +155,36 @@ const loginRules = reactive({
 
 // 滑动验证码校验成功
 function captchaSuccess() {
-  console.log("校验成功");
   loginForm.captchaSuccess = true;
 }
 
 // 点击登录按钮，处理登录
 async function handleLogin() {
-  console.log("loginForm", loginForm);
-  try {
-    const res = await login(loginForm);
-    console.log(res);
-  } catch (error) {
-    console.log(error);
+  // 验证码校验通过
+  if (loginForm.captchaSuccess) {
+    try {
+      // 表单校验
+      const valid = await loginFormRef.value.validate();
+      // 开启loading
+      btnLoading.value = true;
+      // 表单校验通过，派发登录的 action
+      if (valid) {
+        store.dispatch("loginAction", loginForm);
+        router.push("/");
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      //关闭loading
+      btnLoading.value = false;
+    }
+  } else {
+    ElMessage({
+      showClose: true,
+      type: "error",
+      message: "请点击验证码进行校验",
+    });
   }
-  // if (!loginForm.captchaSuccess) {
-  //   ElMessage({
-  //     showClose: true,
-  //     message: "未进行人机验证",
-  //     type: "error",
-  //   });
-  //   return;
-  // }
-  // // 1、表单校验
-  // await loginFormRef.value.validate(async (valid, fields) => {
-  //   if (valid) {
-  //     // 开启loading状态
-  //     btnLoading.value = true;
-  //     // 用通过vuex发送网络请求
-  //     const res = await store.dispatch("handleLogin", toRaw(loginForm));
-  //     if (res) {
-  //       router.push({ path: "/" });
-  //     }
-  //     ElMessage({
-  //       showClose: true,
-  //       message: "登录成功",
-  //       type: "success",
-  //     });
-  //   } else {
-  //     // 校验不通过
-  //     console.log("error submit!", fields);
-  //   }
-  // });
 }
 </script>
 <style lang="scss" scoped>
