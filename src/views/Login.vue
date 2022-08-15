@@ -44,7 +44,10 @@
               :initial="{ opacity: 0, y: 100 }"
               :enter="{ opacity: 1, y: 0, transition: { delay: 300 } }"
             >
-              <el-input v-model="loginForm.username" placeholder="请输入用户名">
+              <el-input
+                v-model="loginForm.username"
+                :placeholder="$t('userPlaceholder')"
+              >
                 <template #prefix>
                   <el-icon><Avatar /></el-icon>
                 </template>
@@ -60,7 +63,7 @@
               <el-input
                 type="password"
                 show-password
-                placeholder="请输入密码"
+                :placeholder="$t('passPlaceholder')"
                 v-model="loginForm.password"
               >
                 <template #prefix>
@@ -81,8 +84,8 @@
               width="100%"
               :height="38"
               :radius="6"
-              bgColor="#fff"
-              textColor="#000"
+              :bgColor="$store.state.layoutStore.isDark ? '#121212' : '#fff'"
+              :textColor="$store.state.layoutStore.isDark ? '#fff' : '#000'"
               borderColor="#dcdfe6"
               :logo="logoImg"
               @success="captchaSuccess"
@@ -100,15 +103,15 @@
               type="primary"
               @click="handleLogin"
               :loading="btnLoading"
-              >登录
-              <!-- {{ $t("signIn") }} -->
+            >
+              {{ $t("signIn") }}
             </el-button>
           </div>
         </div>
         <!-- 国际化 -->
         <Language class="language" />
         <!-- 主题切换 -->
-        <Theme class="theme" />
+        <ThemeToggle class="theme" />
       </div>
     </div>
   </div>
@@ -117,12 +120,11 @@
 import { reactive, ref } from "vue";
 import useMessage from "@/hooks/useMessage";
 import { useRouter } from "vue-router";
-
-// import { useI18n } from "vue-i18n";
-
-// const { t } = useI18n();
+import { Language, ThemeToggle } from "@/layout/components/Header/components";
 import { useStore } from "vuex";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const store = useStore();
 const router = useRouter();
 const { ElMessage } = useMessage();
@@ -144,12 +146,10 @@ const loginForm = reactive({
 
 // 登录表单的校验规则
 const loginRules = reactive({
-  username: [
-    { required: true, message: "请输入正确的用户名", trigger: "blur" },
-  ],
+  username: [{ required: true, message: t("userError"), trigger: "blur" }],
   password: [
-    { required: true, message: "请输入正确的用户名", trigger: "blur" },
-    { min: 3, max: 8, message: "密码长度3到8", trigger: "blur" },
+    { required: true, message: t("PWError"), trigger: "blur" },
+    { min: 3, max: 8, message: t("PWSubError"), trigger: "blur" },
   ],
 });
 
@@ -169,11 +169,25 @@ async function handleLogin() {
       btnLoading.value = true;
       // 表单校验通过，派发登录的 action
       if (valid) {
-        store.dispatch("loginAction", loginForm);
-        router.push("/");
+        const res = await store.dispatch("loginAction", loginForm);
+        store.dispatch("loadAsyncRoute");
+        // console.log(res);
+        if (res) {
+          router.push({ path: "/" });
+        }
+        ElMessage({
+          showClose: true,
+          message: t("signInSuccess"),
+          type: "success",
+        });
       }
     } catch (error) {
-      console.log(error);
+      ElMessage({
+        showClose: true,
+        message: error,
+        type: "error",
+      });
+      // console.log("Login.vue:", error);
     } finally {
       //关闭loading
       btnLoading.value = false;
@@ -182,7 +196,7 @@ async function handleLogin() {
     ElMessage({
       showClose: true,
       type: "error",
-      message: "请点击验证码进行校验",
+      message: t("captchaError"),
     });
   }
 }
@@ -201,7 +215,7 @@ async function handleLogin() {
   align-items: center;
 
   .container {
-    /* @include bg_color(); */
+    @include bg_color();
     background-color: var(--el-bg-color);
     width: 670px;
     height: 400px;
@@ -226,7 +240,7 @@ async function handleLogin() {
       .title {
         font-size: 26px;
         // color: #333;
-        // @include text_color();
+        @include text_color();
         margin: 20px auto 40px auto;
         text-align: center;
         font-weight: 700;

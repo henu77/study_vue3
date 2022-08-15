@@ -2,7 +2,8 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-
+// elementPlus 暗黑模式样式
+import "element-plus/theme-chalk/dark/css-vars.css";
 // 如果您正在使用CDN引入，请删除下面一行。
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 
@@ -20,4 +21,7 @@ app.use(MakeitCaptcha);
 import { MotionPlugin } from "@vueuse/motion";
 app.use(MotionPlugin);
 
+// 引入国际化插件
+import i18n from "@/locales";
+app.use(i18n);
 app.use(store).use(router).mount("#app");

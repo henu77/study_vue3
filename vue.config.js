@@ -3,6 +3,9 @@ const Components = require("unplugin-vue-components/webpack");
 const { ElementPlusResolver } = require("unplugin-vue-components/resolvers");
 const { defineConfig } = require("@vue/cli-service");
 module.exports = defineConfig({
+  chainWebpack: (config) => {
+    config.resolve.alias.set("vue-i18n", "vue-i18n/dist/vue-i18n.cjs.js");
+  },
   transpileDependencies: true,
   //对 Webpack 进行配置
   configureWebpack: {
